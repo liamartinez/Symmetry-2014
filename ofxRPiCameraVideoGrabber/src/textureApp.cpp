@@ -30,9 +30,30 @@ void textureApp::setup()
     right.allocate(w, h, OF_IMAGE_COLOR);
     
     ofBackground(0);
-    ofSetWindowShape(w, h);
+    ofSetWindowShape(h, w);
     state = 0;
     newPic = true;
+
+    switchPin = 5; 
+    oldSwitchState = 0;
+    switchState = 0 ;  
+
+    if(wiringPiSetup() == -1){
+        printf("Error on wiringPi setup\n");
+        }
+
+        pinMode(switchPin,INPUT);
+        //pinMode (6, OUTPUT); 
+
+    title.loadImage("title.jpg"); 
+
+    waitTime = 5000; 
+    displayTime = 3000; 
+    startTime = ofGetElapsedTimeMillis(); 
+
+    firstSession = true; 
+    isCycling = false; 
+    newSession = true; 
 
 }
 
@@ -44,29 +65,68 @@ void textureApp::update()
 		
 	}*/
 
+    switchState = digitalRead(switchPin);
+
+    if (switchState == 1 && oldSwitchState == 0) {
+        goSwitch = true; 
+        goCycle = false; //stop cycling when a switch is touched
+        newSession = true; 
+    }
+
+    oldSwitchState = switchState; 
+
+    if (goSwitch) {
+        if (!isCycling) { //if not cycling, cycle from 0 - 5 (camera to pictures)
+            if (state < 5) state ++; 
+            else state = 0; 
+        } else { //if cycling, cycle from 1-6 (pictures to title)
+            if (state < 6) state ++; 
+            else state = 1; 
+        }
+       
+        startTime = ofGetElapsedTimeMillis();
+        goSwitch = false;
+        isCycling = false; 
+    } 
+
+    if (ofGetElapsedTimeMillis() - startTime > waitTime) {
+        if (firstSession) {
+            state = 6; 
+        } else { //only do this if the title has already been displayed and its not the first session of the day
+            goCycle = true; 
+        }
+    }
+
+    if (goCycle) { 
+        if (newSession) { //start by displaying the title
+            state = 6; 
+            startCycleTime = ofGetElapsedTimeMillis(); 
+            newSession = false; 
+        } else { //then just cycle as necessary
+            if (ofGetElapsedTimeMillis() - startCycleTime > displayTime) {
+            isCycling = true; 
+            goSwitch = true; 
+            startCycleTime = ofGetElapsedTimeMillis(); 
+            }
+        }
+    }
+
+    cout << "state " << state << endl; 
 }
 
 
 //--------------------------------------------------------------
 void textureApp::draw(){
-
+	
+	int drawWidth = w;
+	int drawHeight = h;
 	
 
-	
-	int drawWidth = ofGetWidth();
-	int drawHeight = ofGetHeight();
-	videoGrabber.getTextureReference().draw(0, 0, drawWidth, drawHeight);
+ofPushMatrix(); 
+ofTranslate(0, ofGetHeight()); 
+ofRotateZ(-90); 
 
-	
-
-	ofPushMatrix(); 
-	//ofTranslate(ofGetWidth()/2, ofGetHeight()/2, 0); 
-	//ofScale (.25, .25);
-	//pic.draw(0,0);  
-	ofPopMatrix(); 
-
-
-//-------
+//videoGrabber.getTextureReference().draw(0, 0, drawWidth, drawHeight);
 
 ofSetColor(255);
     int scale = 4;
@@ -90,6 +150,8 @@ ofSetColor(255);
             ofSetColor(200, 0, 0);
             ofSetLineWidth(5);
             ofLine(fbo.getWidth()/2, 0, fbo.getWidth()/2, ofGetHeight());
+
+            newPic = true;
             
             break;
         
@@ -123,6 +185,13 @@ ofSetColor(255);
     switch (state) {
 
         case 1:
+
+            if (newPic) {
+            saveImg();
+            if (firstSession) firstSession = false; 
+            newPic = false;
+            }
+            
             ofPushMatrix();
             pic.draw(0, 0, w/2, h/2);
             mirror.draw(ofGetWidth()/2, 0, w/2, h/2);
@@ -131,13 +200,16 @@ ofSetColor(255);
             ofPopMatrix();
             break;
             
+        case 6:
+            cout << "state 6" << endl; 
+            displayTitle(); 
+            break; 
+
         default:
             break;
     }
 
-
-
-
+ofPopMatrix(); 
 
 //--------
 	stringstream info;
@@ -219,6 +291,19 @@ void textureApp::makeRight() {
     
     right.setFromPixels(rightPix);
     
+}
+
+//--------------------------------------------------------------
+void textureApp::displayTitle() {
+    title.draw(0,0);
+}
+
+//--------------------------------------------------------------
+void textureApp::cyclePics() {
+    
+    if (ofGetElapsedTimeMillis() - startTime) {
+        goSwitch = true; 
+    }
 }
 
 
