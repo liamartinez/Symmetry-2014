@@ -17,14 +17,14 @@ class textureApp : public ofBaseApp, public SSHKeyListener{
 		void draw();
 		void keyPressed(int key);
 
-	void onCharacterReceived(SSHKeyListenerEventData& e);
-	ConsoleListener consoleListener;
-	ofxRPiCameraVideoGrabber videoGrabber;
-	
-	ImageFilterCollection filterCollection;
-	
-	OMXCameraSettings omxCameraSettings;
-	bool doDrawInfo;
+		void onCharacterReceived(SSHKeyListenerEventData& e);
+		ConsoleListener consoleListener;
+		ofxRPiCameraVideoGrabber videoGrabber;
+		
+		ImageFilterCollection filterCollection;
+		
+		OMXCameraSettings omxCameraSettings;
+		bool doDrawInfo;
 
 		ofPixels pix; 
 		ofFbo fbo; 
@@ -46,6 +46,10 @@ class textureApp : public ofBaseApp, public SSHKeyListener{
         bool goSwitch; 
         int switchPin;  
         bool newPic; 
+
+        vector <int> switches;
+        int activePin; 
+        bool newPin; 
 
         //first time
         bool firstSession; //of the day - for making sure we don't cycle blank images

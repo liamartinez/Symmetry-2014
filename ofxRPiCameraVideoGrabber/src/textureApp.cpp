@@ -38,12 +38,31 @@ void textureApp::setup()
     oldSwitchState = 0;
     switchState = 0 ;  
 
+    activePin = -1; 
+
     if(wiringPiSetup() == -1){
         printf("Error on wiringPi setup\n");
         }
 
-        pinMode(switchPin,INPUT);
-        //pinMode (6, OUTPUT); 
+    //pinMode(switchPin,INPUT);
+    //pinMode (6, OUTPUT); 
+
+    /*
+    Pins 0 through 6 (BCM_GPIO 17, 18,  21, 22, 23, 24, 25) 
+    */
+
+    //populate from XML
+    switches.push_back (5);
+    switches.push_back (0);
+    switches.push_back (1);
+    switches.push_back (3);
+    switches.push_back (4);
+    switches.push_back (6);
+    newPin = false; 
+
+    for (int i = 0; i < switches.size(); i++) {
+        pinMode (switches[i], INPUT); 
+    }
 
     title.loadImage("title.jpg"); 
 
@@ -52,7 +71,6 @@ void textureApp::setup()
     startTime = ofGetElapsedTimeMillis(); 
 
     firstSession = true; 
-    isCycling = false; 
     newSession = true; 
 
 }
@@ -65,6 +83,29 @@ void textureApp::update()
 		
 	}*/
 
+
+    for (int i = 0; i < switches.size(); i++) {
+        if (digitalRead(switches[i]) == 1 && i != activePin) {
+            newPin = true; 
+            activePin = i; 
+            cout << "         ACTIVE PIN!!!        " << activePin << endl; 
+        }
+    }
+
+    if (newPin) {
+        if (firstSession) {
+            if (activePin == 1) state = 1; 
+            else state = 0; 
+        } else { 
+        state = activePin;
+        }   
+        startTime = ofGetElapsedTimeMillis();
+        goCycle = false; //stop cycling when a switch is touched
+        newPin = false;   
+       
+    }
+
+    /*
     switchState = digitalRead(switchPin);
 
     if (switchState == 1 && oldSwitchState == 0) {
@@ -74,22 +115,17 @@ void textureApp::update()
     }
 
     oldSwitchState = switchState; 
+    */
 
     if (goSwitch) {
-        if (!isCycling) { //if not cycling, cycle from 0 - 5 (camera to pictures)
-            if (state < 5) state ++; 
-            else state = 0; 
-        } else { //if cycling, cycle from 1-6 (pictures to title)
-            if (state < 6) state ++; 
-            else state = 1; 
-        }
-       
-        startTime = ofGetElapsedTimeMillis();
+        if (state < 6) state ++; 
+        else state = 1;       
         goSwitch = false;
-        isCycling = false; 
     } 
 
+    //if inactive after a certain amount of time, cycle    
     if (ofGetElapsedTimeMillis() - startTime > waitTime) {
+        newSession = true; 
         if (firstSession) {
             state = 6; 
         } else { //only do this if the title has already been displayed and its not the first session of the day
@@ -98,20 +134,18 @@ void textureApp::update()
     }
 
     if (goCycle) { 
+        activePin = -1; 
         if (newSession) { //start by displaying the title
             state = 6; 
             startCycleTime = ofGetElapsedTimeMillis(); 
             newSession = false; 
         } else { //then just cycle as necessary
             if (ofGetElapsedTimeMillis() - startCycleTime > displayTime) {
-            isCycling = true; 
-            goSwitch = true; 
-            startCycleTime = ofGetElapsedTimeMillis(); 
+                goSwitch = true; 
+                startCycleTime = ofGetElapsedTimeMillis(); 
             }
         }
     }
-
-    cout << "state " << state << endl; 
 }
 
 
@@ -201,7 +235,6 @@ ofSetColor(255);
             break;
             
         case 6:
-            cout << "state 6" << endl; 
             displayTitle(); 
             break; 
 
