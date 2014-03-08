@@ -6,8 +6,6 @@
 #include "ofxRPiCameraVideoGrabber.h"
 #include "ImageFilterCollection.h"
 
-#include "wiringPi.h"
-
 class textureApp : public ofBaseApp, public SSHKeyListener{
 
 	public:
@@ -17,41 +15,36 @@ class textureApp : public ofBaseApp, public SSHKeyListener{
 		void draw();
 		void keyPressed(int key);
 
-		void onCharacterReceived(SSHKeyListenerEventData& e);
-		ConsoleListener consoleListener;
-		ofxRPiCameraVideoGrabber videoGrabber;
-		
-		ImageFilterCollection filterCollection;
-		
-		OMXCameraSettings omxCameraSettings;
-		bool doDrawInfo;
+	void onCharacterReceived(SSHKeyListenerEventData& e);
+	ConsoleListener consoleListener;
+	ofxRPiCameraVideoGrabber videoGrabber;
+	
+	ImageFilterCollection filterCollection;
+	
+	OMXCameraSettings omxCameraSettings;
+	bool doDrawInfo;
 
-		ofPixels pix; 
-		ofFbo fbo; 
+	ofPixels pix; 
+	ofFbo fbo; 
 
-	    void saveImg();
-        void makeMirror();
-        void makeLeft();
-        void makeRight(); 
-        void displayTitle(); 
-        void cyclePics(); 
-    
-		ofVideoGrabber 		vidGrabber;
+    void saveImg();
+void makeLeft();
+    void makeRight(); 
+    void makeLeft2(); 
+
+
+    ofVideoGrabber 		vidGrabber;
 		int w;
 		int h;
     
         ofImage pic, mirror, left, right;
+        ofImage wtf; 
+        ofImage left2; 
         int  state; 
-        bool switchState, oldSwitchState; 
         bool goSwitch; 
-        int switchPin;  
         bool newPic; 
 
-        vector <int> switches;
-        int activePin; 
-        bool newPin; 
-
-        //first time
+                //first time
         bool firstSession; //of the day - for making sure we don't cycle blank images
         bool newSession; //new person - for making sure we always start a cycle with the title 
 
@@ -63,5 +56,9 @@ class textureApp : public ofBaseApp, public SSHKeyListener{
 
         //title
         ofImage title; 
+
+        //rotate
+        bool rotateOn; 
+		
 };
 
