@@ -2,6 +2,7 @@ Face-Symmetry-2014
 ==================
 
 Symmetry on a Raspberry Pi + openFrameworks. Needs debugging in fullscreen mode. 
+Run the "old" version.
 
 Switch Pins
 
